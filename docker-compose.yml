@@ -1,0 +1,29 @@
+services:
+
+  prometheus:
+    build: 
+      context: ./prometheus
+      dockerfile: Dockerfile.prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - server
+
+  agent:
+    build: 
+      context: ./agent
+      dockerfile: Dockerfile.agent
+    environment:
+      - SERVER_HOST=server
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - server
+
+  server:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile.server
+    environment:
+    - PYTHONUNBUFFERED=1
+
+  

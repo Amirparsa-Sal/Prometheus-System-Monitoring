@@ -2,6 +2,7 @@ import socket
 import psutil
 import json
 import time
+import os
 
 class Agent:
     '''This is a class for our agents to get system data and send it to our server.'''
@@ -28,13 +29,13 @@ def get_sys_data():
     data = {
         "cpu_percent": psutil.cpu_percent(),
         "mem_available": psutil.virtual_memory().available,
-        "battery": psutil.sensors_battery().percent
     }
     return data
 
 if __name__ == '__main__':
     # Create an agent
-    agent = Agent(host='localhost', port=8001)
+    host = os.getenv('SERVER_HOST', '0.0.0.0')
+    agent = Agent(host=host, port=8001)
 
     not_connected = True
     while not_connected:
@@ -43,20 +44,14 @@ if __name__ == '__main__':
             agent.connect()
             not_connected = False
             print('Connected to the server!')
-        except ConnectionRefusedError:
-            print('No connection could be made because the target machine actively refused it!')
-            # Ask user if they want to try again
-            print('Do you want to try again? [y/n]\n Your choice: ', end='')
-            choice = input()
-            # Check if user choosed to close program
-            if choice != 'y':
-                print("Agent program closed!")
-                quit()
+        except ConnectionRefusedError as e:
+            print(e)
 
     try:
         while True:
             # Get system data
             data = get_sys_data()
+            print(f'data: {data}')
             # Send data to server
             agent.send_message(json.dumps(data))
             # Wait 1s

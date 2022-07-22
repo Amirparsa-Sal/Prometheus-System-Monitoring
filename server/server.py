@@ -1,3 +1,4 @@
+from audioop import add
 import socket
 import json
 from _thread import *
@@ -8,7 +9,6 @@ import time
 # Create gauges
 cpu_gauge = Gauge('cpu_percent', 'CPU Utilization Percent', ['agent'])
 mem_gauge = Gauge('mem_available', 'Available Memory', ['agent'])
-battery_gauge = Gauge('battery', 'Remaining Battery Percentage', ['agent'])
 
 def send_data(message: str, agent_id: int):
     '''This is a function to send data to Prometheus server.'''
@@ -18,7 +18,6 @@ def send_data(message: str, agent_id: int):
     # Update graphs
     cpu_gauge.labels(agent=agent_string).set(data['cpu_percent'])
     mem_gauge.labels(agent=agent_string).set(data['mem_available'])
-    battery_gauge.labels(agent=agent_string).set(data['battery'])
 
 
 class Server:
@@ -27,7 +26,7 @@ class Server:
     def __init__(self, port) -> None:
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(("localhost", port))
+        self.socket.bind(("0.0.0.0", port))
         self.print_lock = threading.Lock()
         self.agents_num = 0
         self.agents = dict()
@@ -61,7 +60,7 @@ class Server:
             while True:
                 # Receive data from client
                 data = socket.recv(1024)
-                # Send data to Prometheus
+                # Send data to Prometheus;;
                 send_data(data, agent_id)
         except ConnectionResetError:
             # delete agent from agents dict
